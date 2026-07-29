@@ -1,8 +1,6 @@
 # PrinterBug Pro
 [English](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md) | [中文](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md) | [Français](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
-`redteam` `ntlm-relay` `windows` `pentest` `coercion` `c2` `mit-license`
-
-Enhanced multi-method Windows authentication coercion tool, fully compatible with original printerbug.py.
+Windows authentication coercion tool, fully compatible with the original printerbug.py.
 ## Features
 - 100% backward compatible with all original printerbug.py arguments, drop-in replacement
 - 4 built-in coercion methods: MS-RPRN (PrinterBug, default), MS-EFSR (PetitPotam), MS-FSRVP (ShadowCoerce), MS-DFSNM (DFSCoerce)
