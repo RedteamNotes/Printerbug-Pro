@@ -1,8 +1,7 @@
 # PrinterBug Pro
 [English](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md) | [中文](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md) | [Français](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
-Outil de coercition d'authentification NTLM SMB Windows  
-Force la cible à se connecter à votre écouteur via les protocoles RPC MS-RPRN/MS-EFSR/MS-FSRVP/MS-DFSNM  
-Pour les scénarios de relais NTLM, entièrement compatible avec les paramètres du printerbug.py original
+Outil de coercition d'authentification NTLM SMB Windows, force la cible à se connecter à votre écouteur via les protocoles RPC MS-RPRN/MS-EFSR/MS-FSRVP/MS-DFSNM pour relais NTLM, entièrement compatible avec les paramètres du printerbug.py original.
+
 ## Fonctionnalités
 - 100% rétrocompatible avec tous les arguments du printerbug.py original, remplacement direct
 - 4 méthodes de coercition intégrées : MS-RPRN (PrinterBug classique, par défaut), MS-EFSR (PetitPotam), MS-FSRVP (ShadowCoerce), MS-DFSNM (DFSCoerce)
