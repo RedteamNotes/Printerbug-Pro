@@ -1,6 +1,8 @@
 # PrinterBug Pro
 Language: [English](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md) | [中文](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md) | [Français](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
+
 Windows SMB NTLM认证强制触发工具，通过MS-RPRN/MS-EFSR/MS-FSRVP/MS-DFSNM RPC协议触发目标向监听地址发起NTLM认证，用于NTLM中继场景，完全兼容原版printerbug.py参数。
+
 ![platform](https://img.shields.io/badge/platform-Windows-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ## 特性
