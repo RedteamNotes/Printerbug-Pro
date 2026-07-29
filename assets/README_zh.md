@@ -1,7 +1,7 @@
 # PrinterBug Pro
-[![en](https://img.shields.io/badge/lang-en-red.svg)](../README.md)
-[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](./README_zh.md)
-[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](./README_fr.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md)
+[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md)
+[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
 `红队` `NTLM中继` `Windows` `渗透测试` `强制认证` `C2`
 多方法Windows认证强制触发增强工具，完全兼容原版printerbug.py。
 ## 特性

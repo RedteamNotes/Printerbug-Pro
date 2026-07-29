@@ -1,7 +1,7 @@
 # PrinterBug Pro
-[![en](https://img.shields.io/badge/lang-en-red.svg)](../README.md)
-[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](./README_zh.md)
-[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](./README_fr.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md)
+[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md)
+[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
 `équipe rouge` `relais NTLM` `Windows` `test d'intrusion` `coercition` `C2`
 Outil amélioré de coercition d'authentification Windows multi-méthodes, entièrement compatible avec le printerbug.py original.
 ## Fonctionnalités

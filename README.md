@@ -1,7 +1,7 @@
 # PrinterBug Pro
-[![en](https://img.shields.io/badge/lang-en-red.svg)](./README.md)
-[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](./assets/README_zh.md)
-[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](./assets/README_fr.md)
+[![en](https://img.shields.io/badge/lang-en-red.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/README.md)
+[![zh](https://img.shields.io/badge/lang-zh-yellow.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_zh.md)
+[![fr](https://img.shields.io/badge/lang-fr-blue.svg)](https://github.com/RedteamNotes/Printerbug-Pro/blob/main/assets/README_fr.md)
 `redteam` `ntlm-relay` `windows` `pentest` `coercion` `c2`
 Enhanced multi-method Windows authentication coercion tool, fully compatible with original printerbug.py.
 ## Features
